@@ -6,9 +6,9 @@ scalaVersion := "2.12.8"
 val sparkVersion = "2.4.5"
 val testcontainersScalaVersion = "0.37.0"
 
-resolvers += "confluent" at "http://packages.confluent.io/maven/"
+resolvers += "confluent" at "https://packages.confluent.io/maven/"
 resolvers += Resolver.jcenterRepo
-resolvers += "Spark Packages Repo" at "http://dl.bintray.com/spark-packages/maven"
+resolvers += "Spark Packages Repo" at "https://dl.bintray.com/spark-packages/maven"
 
 
 assemblyMergeStrategy in assembly := {
@@ -31,6 +31,8 @@ libraryDependencies ++= Seq(
   "org.apache.spark" %% "spark-sql" % sparkVersion,
   "org.apache.spark" %% "spark-sql-kafka-0-10" % sparkVersion,
   "org.apache.kafka" % "kafka-clients" % "2.2.1",
+  "io.delta" %% "delta-core" % "0.6.0",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.4",
   "org.postgresql" % "postgresql" % "42.2.5",
   "com.typesafe" % "config" % "1.4.0",
   "org.slf4j" % "slf4j-simple" % "1.7.30",
@@ -42,5 +44,3 @@ libraryDependencies ++= Seq(
   "io.debezium" % "debezium-testing-testcontainers" % "1.0.3.Final" % IntegrationTest,
   "mysql" % "mysql-connector-java" % "5.1.49" % IntegrationTest
 )
-
-

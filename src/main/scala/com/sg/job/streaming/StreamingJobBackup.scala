@@ -3,12 +3,10 @@ package com.sg.job.streaming
 import com.sg.wrapper.SparkSessionWrapper
 import io.delta.tables.DeltaTable
 import org.apache.spark.sql.functions.{col, lit, struct}
-import org.apache.spark.sql.streaming.Trigger
 import org.apache.spark.sql.types.{BooleanType, DoubleType, StringType, StructField, StructType}
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 import scala.collection.immutable.HashMap
-import scala.concurrent.duration.DurationInt
 import scala.util.parsing.json._
 
 object StreamingJob extends App with SparkSessionWrapper {
@@ -65,24 +63,28 @@ class StreamingJobExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderCo
     deltaTable.as("t")
       .merge(
         microBatchOutputDF.as("s"),
-        "s.id = t.id")
+        "s.key = t.key")
       .whenMatched("s.deleted = true")
       .delete()
       .whenMatched()
-      // TODO dynamic for every table
-      .updateExpr(Map("id" -> "s.id", "first_name" -> "s.first_name", "last_name" -> "s.last_name", "email" -> "s.email"))
-      .whenNotMatched()
-      .insertExpr(Map("id" -> "s.id", "first_name" -> "s.first_name", "last_name" -> "s.last_name", "email" -> "s.email"))
+      .updateExpr(Map("key" -> "s.key", "time" -> "s.time", "deleted" -> "s.deleted", "value" -> "s.value"))
+      .whenNotMatched("s.deleted = false")
+      .insertExpr(Map("key" -> "s.key", "time" -> "s.time", "deleted" -> "s.deleted", "value" -> "s.value"))
       .execute()
   }
 
+  // DataFrame with changes having following columns
+  // - key: key of the change
+  // - time: time of change for ordering between changes (can replaced by other ordering id)
+  // - value: updated or inserted value if key was not deleted
+  // - deleted: true if the key was deleted, false if the key was inserted or updated
   def debeziumTodeltaFormat(microBatchInputDF: DataFrame, batchId: Long): DataFrame = {
     var microBatchFinalOutputDF: DataFrame = spark.emptyDataFrame
     if (!microBatchInputDF.isEmpty) {
       val rowIterator = microBatchInputDF.toLocalIterator()
       while (rowIterator.hasNext) {
         val row = rowIterator.next()
-        // TODO Filter delete double result in connect ??
+        // Filter delete double result
         if (row.getString(1) != null) {
           val dataFrame: DataFrame = extractRow(row)
           if (microBatchFinalOutputDF.columns.size > 0) {
@@ -97,48 +99,49 @@ class StreamingJobExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderCo
     microBatchFinalOutputDF
   }
 
-  // TODO extract to another class
   def extractRow(row: Row): DataFrame = {
+    var microBatchOutputDF: DataFrame = spark.emptyDataFrame
 
     val jsonKey = JSON.parseFull(row.getString(0))
     val jsonValue = JSON.parseFull(row.getString(1))
 
-    val id = jsonKey.get.asInstanceOf[Map[String, String]].get("payload")
+    val key = jsonKey.get.asInstanceOf[Map[String, String]].get("payload")
                      .get.asInstanceOf[Map[String, Double]].get("id").get
+
     val valuePayload = jsonValue.get.asInstanceOf[Map[String, String]].get("payload")
                                 .get.asInstanceOf[HashMap.HashTrieMap[String, Any]]
-
-    val deleted = valuePayload("op").toString.equalsIgnoreCase("d")
+    val time = valuePayload("ts_ms")
     val value = valuePayload("after").asInstanceOf[Map[String, String]]
-
-    // TODO dynamic for every table
-    var firstName = ""
-    var lastName = ""
-    var email = ""
-    if (value!=null) {
-      firstName = value("first_name")
-      lastName = value("last_name")
-      email = value("email")
-    }
+    val deleted = valuePayload("op").toString.equalsIgnoreCase("d")
 
     val someData = Seq(
-      Row(id, firstName, lastName, email, deleted)
+      Row(key, time, deleted)
     )
 
     val someSchema = List(
-      StructField("id", DoubleType, true),
-      StructField("first_name", StringType, true),
-      StructField("last_name", StringType, true),
-      StructField("email", StringType, true),
+      StructField("key", DoubleType, true),
+      StructField("time", DoubleType, true),
       StructField("deleted", BooleanType, true)
     )
-
-    var microBatchOutputDF: DataFrame = spark.emptyDataFrame
 
     microBatchOutputDF = spark.createDataFrame(
       spark.sparkContext.parallelize(someData),
       StructType(someSchema)
     )
+
+    if (value != null) {
+      microBatchOutputDF = microBatchOutputDF.withColumn(
+      "value",
+        struct(
+          lit(value.get("id").get).as("id"),
+          lit(value.get("first_name").get).as("first_name"),
+          lit(value.get("last_name").get).as("last_name"),
+          lit(value.get("email").get).as("email")
+        )
+      )
+    } else {
+      microBatchOutputDF = microBatchOutputDF.withColumn("value", lit(null: String))
+    }
     microBatchOutputDF
   }
 }
