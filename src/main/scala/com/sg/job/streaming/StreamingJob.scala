@@ -2,13 +2,10 @@ package com.sg.job.streaming
 
 import com.sg.wrapper.SparkSessionWrapper
 import io.delta.tables.DeltaTable
-import org.apache.spark.sql.functions.{col, lit, struct}
-import org.apache.spark.sql.streaming.Trigger
-import org.apache.spark.sql.types.{BooleanType, DoubleType, StringType, StructField, StructType}
+import org.apache.spark.sql.types._
 import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 
 import scala.collection.immutable.HashMap
-import scala.concurrent.duration.DurationInt
 import scala.util.parsing.json._
 
 object StreamingJob extends App with SparkSessionWrapper {
@@ -26,7 +23,7 @@ case class KafkaReaderConfig(kafkaBootstrapServers: String, topics: String, star
 case class StreamingJobConfig(checkpointLocation: String, kafkaReaderConfig: KafkaReaderConfig)
 
 class StreamingJobExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderConfig, checkpointLocation: String, jdbcConfig: JDBCConfig) {
-  val deltaTable = DeltaTable.forPath(spark, "/mnt/delta/events")
+  val deltaTable: DeltaTable = DeltaTable.forPath(spark, "/mnt/delta/events")
 
   def execute(): Unit = {
     // read data from kafka and parse them
@@ -85,7 +82,7 @@ class StreamingJobExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderCo
         // TODO Filter delete double result in connect ??
         if (row.getString(1) != null) {
           val dataFrame: DataFrame = extractRow(row)
-          if (microBatchFinalOutputDF.columns.size > 0) {
+          if (microBatchFinalOutputDF.columns.length > 0) {
             microBatchFinalOutputDF = microBatchFinalOutputDF.union(dataFrame)
           } else {
             microBatchFinalOutputDF = dataFrame
