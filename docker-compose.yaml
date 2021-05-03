@@ -11,7 +11,6 @@ services:
       - ALLOW_ANONYMOUS_LOGIN=yes
       - ZOOKEEPER_CLIENT_PORT=2181
       - ZOOKEEPER_TICK_TIME=2000
-
   kafka:
     image: confluentinc/cp-kafka:latest
     container_name: kafka
@@ -25,8 +24,7 @@ services:
       - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
-      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=
-
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
   mysql:
     image: debezium/example-mysql:1.0
     container_name: mysql
@@ -36,7 +34,6 @@ services:
       - MYSQL_ROOT_PASSWORD=debezium
       - MYSQL_USER=mysqluser
       - MYSQL_PASSWORD=mysqlpw
-
   connect:
     image: debezium/connect:1.0
     container_name: connect
@@ -51,9 +48,8 @@ services:
       - CONFIG_STORAGE_TOPIC=my_connect_configs
       - OFFSET_STORAGE_TOPIC=my_connect_offsets
       - STATUS_STORAGE_TOPIC=my_connect_statuses
-
   dremio:
-    image: dremio/dremio-oss
+    image: dremio/dremio-oss:latest
     container_name: dremio
     ports:
       - 9047:9047
