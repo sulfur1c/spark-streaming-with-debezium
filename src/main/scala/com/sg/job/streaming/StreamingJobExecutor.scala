@@ -9,11 +9,10 @@ object StreamingJobExecutor extends App with SparkSessionWrapper {
 
   val currentDirectory = new java.io.File(".").getCanonicalPath
   val kafkaReaderConfig = KafkaReaderConfig("localhost:29092", "dbserver1.inventory.customers")
-  val jdbcConfig = JDBCConfig(url = "jdbc:postgresql://localhost:5432/test")
-  new StreamingJobExecutor(spark, kafkaReaderConfig, currentDirectory + "/checkpoint/job", jdbcConfig).execute()
+  new StreamingJobExecutor(spark, kafkaReaderConfig).execute()
 }
 
-class StreamingJobExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderConfig, checkpointLocation: String, jdbcConfig: JDBCConfig) {
+class StreamingJobExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderConfig) {
 
   val deltaTable: DeltaTable = DeltaTable.forPath(spark, "hdfs://192.168.0.18:9000/mnt/delta/events")
 

@@ -8,11 +8,10 @@ object StreamingJobInitialExecutor extends App with SparkSessionWrapper {
 
   val currentDirectory = new java.io.File(".").getCanonicalPath
   val kafkaReaderConfig = KafkaReaderConfig("localhost:29092", "dbserver1.inventory.customers")
-  val jdbcConfig = JDBCConfig(url = "jdbc:postgresql://localhost:5432/test")
-  new StreamingJobInitialExecutor(spark, kafkaReaderConfig, currentDirectory + "/checkpoint/job", jdbcConfig).execute()
+  new StreamingJobInitialExecutor(spark, kafkaReaderConfig).execute()
 }
 
-class StreamingJobInitialExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderConfig, checkpointLocation: String, jdbcConfig: JDBCConfig) {
+class StreamingJobInitialExecutor(spark: SparkSession, kafkaReaderConfig: KafkaReaderConfig) {
 
   def execute(): Unit = {
     // read data from kafka and parse them
