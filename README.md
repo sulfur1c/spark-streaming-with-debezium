@@ -15,7 +15,7 @@ If the installation goes well you can check HDFS here: http://"yourLocalIP":9870
 ### Setting-up Dremio
 Delta Lake is currently offered in Preview and can be enabled by setting the support key “dremio.deltalake.enabled” to true. https://www.dremio.com/announcing-dremio-february-2021
 
-If the installation goes well you can check Dremio here: http://localhost:9047//
+If the installation goes well you can check Dremio here: http://localhost:9047/
 
 ### Setting-up Superset with Dremio libraries
 I have used this docker image https://hub.docker.com/r/wtkwsk/superset-dremio-drivers and this instructions to set up and initialize Superset https://hub.docker.com/r/apache/superset and https://www.dremio.com/tutorials/dremio-apache-superset/ for Dremio's connector https://www.dremio.com/tutorials/dremio-apache-superset/
