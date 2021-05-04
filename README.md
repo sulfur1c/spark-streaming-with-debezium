@@ -21,7 +21,7 @@ If the installation goes well you can check Dremio here: http://localhost:9047//
 I have used this docker image https://hub.docker.com/r/wtkwsk/superset-dremio-drivers and this instructions to set up and initialize Superset https://hub.docker.com/r/apache/superset and https://www.dremio.com/tutorials/dremio-apache-superset/ for Dremio's connector https://www.dremio.com/tutorials/dremio-apache-superset/
 
 ## Running the app
-At this point you have all necessary tools up and running. Here we are going to describe step by step how to do things running
+At this point you have all necessary tools up and running. Here we are going to describe step by step how to do things running.
 
 - run ```StreamingJobInitialExecutor```
 
@@ -29,13 +29,13 @@ At this point you have all necessary tools up and running. Here we are going to 
   
 - Create connector: ```curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" localhost:8083/connectors/ -d '{ "name": "inventory-connector", "config": { "connector.class": "io.debezium.connector.mysql.MySqlConnector", "tasks.max": "1", "database.hostname": "mysql", "database.port": "3306", "database.user": "root", "database.password": "debezium", "database.server.id": "184054", "database.server.name": "dbserver1", "database.include.list": "inventory", "database.history.kafka.bootstrap.servers": "kafka:9092", "database.history.kafka.topic": "dbhistory.inventory" } }'```
 
-After some time processing you should see initial MYSQL data in HDFS, check it with spark-shell or Dremio HDFS connector
+After some time processing you should see initial MYSQL data in HDFS, check it with spark-shell or Dremio HDFS connector.
 
 - Spark Shell: ```spark-shell --packages io.delta:delta-core_2.12:0.8.0 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"```
 
 - Dremio: Remember to setup properly refresh metadata interval to 1 min once you are creating HDFS Dremio's connector
 
-We are ready to streaming, just leave running StreamingJobExecutor and do changes in MYSQL customers table, you should see changes in Dremio and HDFS
+We are ready to streaming, just leave running StreamingJobExecutor and do changes in MYSQL customers table, you should see changes in HDFS, Dremio and Superset.
 
 - Run ```StreamingJobExecutor```
 
