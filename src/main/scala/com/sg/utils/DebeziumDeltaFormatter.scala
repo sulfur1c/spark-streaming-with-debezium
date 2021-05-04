@@ -29,7 +29,6 @@ case class DebeziumDeltaFormatter(spark: SparkSession) {
     microBatchFinalOutputDF
   }
 
-  // TODO extract to another class
   def extractRow(row: Row): DataFrame = {
 
     val jsonKey = JSON.parseFull(row.getString(0))
