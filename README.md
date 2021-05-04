@@ -1,5 +1,7 @@
 # spark-streaming-with-debezium
 
+![img.png](img.png)
+
 ## Prerequisites
 - Docker
 - IDE (with SBT and JDK)
