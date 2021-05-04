@@ -41,3 +41,12 @@ We are ready to streaming, just leave running StreamingJobExecutor and do change
 
 ### More info:
 https://medium.com/@suchit.g/spark-streaming-with-kafka-connect-debezium-connector-ab9163808667
+
+### Next steps
+
+- Amend unitTest.
+- Remove jdbcConfig from StreamingJobExecutor and StreamingJobInitialExecutor jobs.
+- Create a model to use DebeziumDeltaFormatter and StreamingJobExecutor.upsertToDelta dynamically   
+- Add Superset docker image to docker-compose
+
+
